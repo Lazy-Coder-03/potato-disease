@@ -1,0 +1,5 @@
+.fend
+__pycache__
+.env
+node_modules
+data
