@@ -133,10 +133,27 @@ const ImageUpload = () => {
   const [image, setImage] = useState(false);
   let confidence = 0;
 
-  const sendFile = async () => {
+  const resizeImage = (file, callback) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 256;
+        canvas.height = 256;
+        ctx.drawImage(img, 0, 0, 256, 256);
+        canvas.toBlob(callback, 'image/jpeg', 0.95);
+      };
+    };
+  };
+
+  const sendFile = async (resizedFile) => {
     if (image) {
       let formData = new FormData();
-      formData.append("file", selectedFile);
+      formData.append("file", resizedFile);
       let res = await axios({
         method: "post",
         url: process.env.REACT_APP_API_URL,
@@ -146,7 +163,7 @@ const ImageUpload = () => {
         setData(res.data);
       }
     }
-  }
+  };
 
   useEffect(() => {
     if (!selectedFile) {
@@ -161,7 +178,9 @@ const ImageUpload = () => {
     if (!preview) {
       return;
     }
-    sendFile();
+    resizeImage(selectedFile, (resizedFile) => {
+      sendFile(resizedFile);
+    });
   }, [preview]);
 
   const onSelectFile = (files) => {
@@ -216,8 +235,7 @@ const ImageUpload = () => {
                   component="image"
                   title="Image of a potato plant leaf"
                 />
-              </CardActionArea>
-              }
+              </CardActionArea>}
               {!image && <CardContent className={classes.content}>
                 <DropzoneArea
                   acceptedFiles={['image/*']}
@@ -244,7 +262,6 @@ const ImageUpload = () => {
                     </TableBody>
                   </Table>
                 </TableContainer>
-                {/* Check new button */}
                 <Button variant="contained" color="primary" className={classes.uploadButton} onClick={handleCheckNew}>
                   Check new
                 </Button>

@@ -5,9 +5,29 @@ from io import BytesIO
 from PIL import Image
 import tensorflow as tf
 from fastapi.middleware.cors import CORSMiddleware
+import requests
+import gdown
+import os
 
-MODEL=tf.keras.models.load_model('../models/potato_blight_model/2')
+MODEL_FOLDER = 'temp_models'
+MODEL_FILENAME = 'potato_blight_model_temp.h5'
+MODEL_PATH = os.path.join(MODEL_FOLDER, MODEL_FILENAME)  # Path to save the downloaded model
 
+MODEL_ID = '19dFRIHQrnmrsH0SYdMiEsiMbxk_BYR-4'  # Google Drive file ID
+
+# Create the folder if it doesn't exist
+if not os.path.exists(MODEL_FOLDER):
+    os.makedirs(MODEL_FOLDER)
+
+# Format the download URL
+MODEL_URL = f'https://drive.google.com/uc?id={MODEL_ID}'
+
+# Download the model from Google Drive if it doesn't exist
+if not os.path.exists(MODEL_PATH):
+    gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+
+# Load the model
+MODEL = tf.keras.models.load_model(MODEL_PATH)
 
 CLASS_NAMES = ['Potato Early blight', 'Potato Late blight', 'Potato healthy']
 print('Model loaded successfully!')
@@ -15,6 +35,7 @@ print('Model loaded successfully!')
 origins = [
     "http://localhost:3000",
     "http://localhost",
+    "https://potato-frontend-red.vercel.app"
 ]
 
 
